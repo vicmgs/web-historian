@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
+var request = require('request');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -53,10 +55,47 @@ var checkFileExists = function(filePath, callback) {
 
 var downloadFile = function(url, filePath, callback) {
   // the content should come from the real content file from the website
-  fs.writeFile(filePath + url, url, function(error) {
-    callback(!error);
+  request('http://' + url, function(error, response, body){
+    if (!error && response.statusCode === 200) {
+      fs.writeFile(filePath + url, body, function(error) {
+        callback(!error);
+      });
+    } else {
+      console.log(error);
+    }
   });
 };
+
+
+// var downloadFile = function(url, filePath, callback) {
+//   // the content should come from the real content file from the website
+//   http.get({host: url, path: '/'}, function(response){
+//     if (response.statusCode === 301) {
+//       console.log(response.headers.location);
+//       // http.get({host: response.headers.location}, function(response) {
+//       //   var body = '';
+//       //   response.on('data', function(data){
+//       //     body += data;
+//       //   });
+//       //   response.on('end', function(){
+//       //     fs.writeFile(filePath + url, body, function(error) {
+//       //       callback(!error);
+//       //     });
+//       //   });
+//       // });
+//     } else if (response.statusCode === 200) {
+//       var body = '';
+//       response.on('data', function(data){
+//         body += data;
+//       });
+//       response.on('end', function(){
+//         fs.writeFile(filePath + url, body, function(error) {
+//           callback(!error);
+//         });
+//       });
+//     }
+//   });
+// };
 
 exports.readListOfUrls = function(callback) {
   readSitesFile(callback);
