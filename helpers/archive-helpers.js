@@ -24,10 +24,7 @@ exports.initialize = function(pathsObj) {
 
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
-
-exports.readListOfUrls = function(callback) {
-  // read the site text file
-    // file path from paths.list
+var readSitesFile = function(callback) {
   fs.readFile(exports.paths.list, 'utf-8', function(error, content) {
     if (!error) {
       var urls = content.split('\n');
@@ -38,15 +35,63 @@ exports.readListOfUrls = function(callback) {
   });
 };
 
-exports.isUrlInList = function(url, callback) {
+var writeSitesFile = function(content, callback) {
+  fs.appendFile(exports.paths.list, content, function(error) {
+    if (!error) {
+      callback();
+    } else {
+      console.log(error);
+    }
+  });
+};
 
+var checkFileExists = function(filePath, callback) {
+  fs.stat(filePath, function(error) {
+    callback(!error);
+  })
+};
+
+var downloadFile = function(url, filePath, callback) {
+  // the content should come from the real content file from the website
+  fs.writeFile(filePath + url, url, function(error) {
+    callback(!error);
+  });
+};
+
+exports.readListOfUrls = function(callback) {
+  readSitesFile(callback);
+};
+
+exports.isUrlInList = function(url, callback) {
+  readSitesFile(function(urls) {
+    callback(urls.indexOf(url) >= 0);
+  });
 };
 
 exports.addUrlToList = function(url, callback) {
+  writeSitesFile(url, callback);
 };
 
 exports.isUrlArchived = function(url, callback) {
+  var filePath = exports.paths.archivedSites + '/' + url;
+  checkFileExists(filePath, callback);
 };
 
-exports.downloadUrls = function(urlArray) {
+exports.downloadUrls = function(urls) {
+  urls.forEach(function(url) {
+    exports.isUrlInList(url, function(inList) {
+      if (!inList) {
+        exports.addUrlToList(url, function() {
+          exports.isUrlArchived(url, function(archived) {
+            if (!archived) {
+              var filePath = exports.paths.archivedSites + '/';
+              downloadFile(url, filePath, function(downloaded) {
+                
+              });
+            }
+          });
+        });
+      }
+    });
+  });
 };

@@ -24,28 +24,28 @@ var addSiteTextFile = function(res, fileLocation, content) {
       res.end();
     }
   });
-}
+};
 
 exports.handleRequest = function (req, res) {
   var statusCode = 200;
 
   if (req.url === '/') {
-      if (req.method === 'GET') {
-        res.writeHead(statusCode, httpHelpers.headers);
+    if (req.method === 'GET') {
+      res.writeHead(statusCode, httpHelpers.headers);
 
-        var filePath = archive.paths.siteAssets + '/index.html';
-        fileResponseReadHandler(res, filePath);
-      } else if (req.method === 'POST') {
-        var buffer = '';
-        req.on('data', function(data) {
-          buffer += data;
-        });
-        req.on('end', function(error) {
-          var url = buffer.substring(buffer.indexOf('=') + 1);
-          var filePath = archive.paths.list;
-          addSiteTextFile(res, filePath, url + '\n');
-        });
-      }
+      var filePath = archive.paths.siteAssets + '/index.html';
+      fileResponseReadHandler(res, filePath);
+    } else if (req.method === 'POST') {
+      var buffer = '';
+      req.on('data', function(data) {
+        buffer += data;
+      });
+      req.on('end', function(error) {
+        var url = buffer.substring(buffer.indexOf('=') + 1);
+        var filePath = archive.paths.list;
+        addSiteTextFile(res, filePath, url + '\n');
+      });
+    }
   } else {
     if (req.method === 'GET') {
       res.writeHead(statusCode, httpHelpers.headers);
