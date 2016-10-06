@@ -50,9 +50,9 @@ exports.handleRequest = function (req, res) {
                 httpHelpers.serveAssets(res, filePath);
               } else { // exists in archived folder
                 // Show the archived file to the client
-                // res.writeHead(302, httpHelpers.headers);
-                // var filePath = archive.paths.archivedSites +'/'+ url;
-                // httpHelpers.serveAssets(res, filePath);
+                var filePath = archive.paths.archivedSites + '/' + url;
+                res.writeHead(200, httpHelpers.headers);
+                httpHelpers.serveAssets(res, filePath);
               }
             });
           }
