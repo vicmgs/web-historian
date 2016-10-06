@@ -48,7 +48,7 @@ var writeSitesFile = function(content, callback) {
 var checkFileExists = function(filePath, callback) {
   fs.stat(filePath, function(error) {
     callback(!error);
-  })
+  });
 };
 
 var downloadFile = function(url, filePath, callback) {
@@ -79,17 +79,10 @@ exports.isUrlArchived = function(url, callback) {
 
 exports.downloadUrls = function(urls) {
   urls.forEach(function(url) {
-    exports.isUrlInList(url, function(inList) {
-      if (!inList) {
-        exports.addUrlToList(url, function() {
-          exports.isUrlArchived(url, function(archived) {
-            if (!archived) {
-              var filePath = exports.paths.archivedSites + '/';
-              downloadFile(url, filePath, function(downloaded) {
-                
-              });
-            }
-          });
+    exports.isUrlArchived(url, function(archived) {
+      if (!archived) {
+        var filePath = exports.paths.archivedSites + '/';
+        downloadFile(url, filePath, function(downloaded) {
         });
       }
     });

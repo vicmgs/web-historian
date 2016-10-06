@@ -4,37 +4,25 @@ var archive = require('../helpers/archive-helpers');
 var fs = require('fs');
 var httpHelpers = require('./http-helpers');
 
-var fileResponseReadHandler = function(res, filePath) {
-  fs.readFile(filePath, function(error, content) {
-    if (!error) {
-      res.end(content, 'utf-8');
-    } else {
-      res.writeHead(404);
-      res.end();
-    }
-  });
-};
-
-var addSiteTextFile = function(res, fileLocation, content) {
-  fs.appendFile(fileLocation, content, function(error) {
-    if (error) {
-      console.log(error);
-    } else {
-      res.writeHead(302, httpHelpers.headers);
-      res.end();
-    }
-  });
-};
+// var fileResponseReadHandler = function(res, filePath) {
+//   fs.readFile(filePath, function(error, content) {
+//     if (!error) {
+//       res.end(content, 'utf-8');
+//     } else {
+//       res.writeHead(404);
+//       res.end();
+//     }
+//   });
+// };
 
 exports.handleRequest = function (req, res) {
-  var statusCode = 200;
+  // var statusCode = 200;
 
   if (req.url === '/') {
     if (req.method === 'GET') {
-      res.writeHead(statusCode, httpHelpers.headers);
-
       var filePath = archive.paths.siteAssets + '/index.html';
-      fileResponseReadHandler(res, filePath);
+      res.writeHead(200, httpHelpers.headers);
+      httpHelpers.serveAssets(res, filePath);
     } else if (req.method === 'POST') {
       var buffer = '';
       req.on('data', function(data) {
@@ -43,15 +31,41 @@ exports.handleRequest = function (req, res) {
       req.on('end', function(error) {
         var url = buffer.substring(buffer.indexOf('=') + 1);
         var filePath = archive.paths.list;
-        addSiteTextFile(res, filePath, url + '\n');
+
+        // check if the url is already on the list?
+        // call the archive helper
+        archive.isUrlInList(url, function(isInList) {
+          if (!isInList) {
+            archive.addUrlToList(url + '\n', function() {
+              res.writeHead(302, httpHelpers.headers);
+              var filePath = archive.paths.siteAssets + '/loading.html';
+              httpHelpers.serveAssets(res, filePath);
+            });
+          } else {
+            archive.isUrlArchived(url, function(isArchived) {
+              if (!isArchived) {
+                // show the loading page
+                res.writeHead(302, httpHelpers.headers);
+                var filePath = archive.paths.siteAssets + '/loading.html';
+                httpHelpers.serveAssets(res, filePath);
+              } else { // exists in archived folder
+                // Show the archived file to the client
+                // res.writeHead(302, httpHelpers.headers);
+                // var filePath = archive.paths.archivedSites +'/'+ url;
+                // httpHelpers.serveAssets(res, filePath);
+              }
+            });
+          }
+        });
+
       });
     }
   } else {
     if (req.method === 'GET') {
-      res.writeHead(statusCode, httpHelpers.headers);
+      res.writeHead(200, httpHelpers.headers);
       var fixtureName = req.url.substring(1);
       var filePath = archive.paths.archivedSites + '/' + fixtureName;
-      fileResponseReadHandler(res, filePath);
+      httpHelpers.serveAssets(res, filePath);
     }
   }
   // res.end(archive.paths.list);
